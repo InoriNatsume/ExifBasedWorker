@@ -1,6 +1,6 @@
-# EXIF Template Tool
+# ExifBasedWorker
 
-이미지에 숨어있는 태그(EXIF/스텔스 메타데이터)를 읽어서,
+NovelAI 이미지에 숨어있는 태그(EXIF/스텔스 메타데이터)를 읽어서,
 **파일명을 자동으로 바꾸거나** **폴더로 분류**해 주는 Windows 데스크톱 도구입니다.
 
 ## 이런 걸 할 수 있습니다
