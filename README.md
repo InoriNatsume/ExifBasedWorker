@@ -72,7 +72,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     P["🗂️ 템플릿: hbr"]
-    V1["📋 변수: narby"]
+    V1["📋 변수: chara"]
     V2["📋 변수: emotion"]
     VV1["📌 값: adelheid_kanzaki"]
     VV2["📌 값: inori_natsume"]
@@ -114,7 +114,7 @@ flowchart TB
       ]
     },
     {
-      "name": "narby",
+      "name": "chara",
       "values": [
         { "name": "adelheid_kanzaki", "tags": ["kanzaki adelheid"] },
         { "name": "inori_natsume",    "tags": ["natsume inori"] }
@@ -126,13 +126,13 @@ flowchart TB
 
 **매칭 원리:** 이미지의 태그 목록에 값의 태그가 **전부 포함**되어 있으면 매칭됩니다.
 
-예를 들어, 변수 순서 `narby,emotion`으로 파일명 변경을 실행하면:
+예를 들어, 변수 순서 `chara,emotion`으로 파일명 변경을 실행하면:
 - 이미지 태그에 `kanzaki adelheid, happy, open mouth, smile, ...`이 포함 → **🖼️ `adelheid_kanzaki_happy.webp`**
 - 이미지 태그에 `natsume inori, angry, anger vein, wavy mouth, ...`이 포함 → **🖼️ `inori_natsume_angry.webp`**
 - 태그가 어떤 값과도 매칭되지 않으면 → **UNKNOWN** (건너뜀)
 - 태그가 여러 값에 동시에 매칭되면 → **CONFLICT** (건너뜀)
 
-`narby` 기준 분류 결과는 아래처럼 폴더 구조로 생성됩니다.
+`chara` 기준 분류 결과는 아래처럼 폴더 구조로 생성됩니다.
 
 ```mermaid
 flowchart TB
@@ -160,8 +160,10 @@ flowchart TB
 
 ## 템플릿 검증 규칙
 
-작업 실행 전에 템플릿이 올바른지 자동으로 검사합니다.
-규칙에 어긋나면 한국어 에러 메시지와 함께 중단됩니다.
+템플릿을 **저장하거나 JSON을 임포트할 때** 자동으로 유효성을 검사합니다.
+규칙에 어긋나면 한국어 에러 메시지와 함께 저장이 중단되므로, 잘못된 템플릿으로 작업이 실행되는 일은 없습니다.
+
+### 검증 규칙 요약
 
 | 대상 | 규칙 | 기호 표현 |
 |------|------|----------|
@@ -171,7 +173,25 @@ flowchart TB
 | 태그 조합 | 같은 변수 내 동일 조합 금지 | `값1.태그집합 ≠ 값2.태그집합` |
 | 태그 부분집합 | 같은 변수 내 포함 관계 금지 | `값1.태그집합 ⊄ 값2.태그집합` |
 
-> `값1`, `값2` = 같은 변수 안의 서로 다른 임의의 값(VariableValue)
+> `값1`, `값2` = 같은 변수 안의 서로 다른 임의의 값
+
+### 에러 메시지 예시
+
+규칙을 위반하면 다음과 같은 메시지가 표시됩니다.
+
+```
+❌ 1번째 변수 이름이 비어 있습니다.
+❌ 변수 이름 중복: 'emotion'
+❌ 변수 'emotion'의 2번째 값 이름이 비어 있습니다.
+❌ 변수 'emotion'에서 값 이름이 중복됩니다: 'happy'
+❌ 태그가 비어 있는 값이 있습니다: emotion/happy, chara/adelheid_kanzaki
+❌ 태그 조합이 중복됩니다: 'happy' 와 'joyful'
+❌ 태그 부분집합 충돌: 'happy' ⊂ 'very_happy'
+```
+
+### 부분집합 금지 규칙이 필요한 이유
+
+`happy`의 태그가 `{smile, open mouth}`이고 `very_happy`의 태그가 `{smile, open mouth, blush}`라면, `smile, open mouth, blush`가 있는 이미지는 **두 값에 동시에 매칭**되어 CONFLICT가 발생합니다. 이런 상황을 템플릿 단계에서 미리 막아 줍니다.
 
 ## 테스트
 
@@ -225,7 +245,7 @@ pyinstaller --noconfirm --windowed --name ExifTemplateTool main.py
 ---
 
 <details>
-<summary><b>📁 폴더 구조 (개발자용)</b></summary>
+<summary><b>📁 폴더 구조 </b></summary>
 
 ```
 ExifBased_namer/
