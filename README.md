@@ -177,6 +177,12 @@ flowchart TB
 | `test_tag_sets.py` | 공통 태그 제거/충돌 탐지 유틸 검증 |
 | `test_template_ops.py` | 템플릿 에디터 연산(add/update/delete) 검증 |
 
+### 수동 검증 도구
+
+| 파일 | 용도 |
+|------|------|
+| `hash_verification/compare_by_fingerprint_ui.py` | 해시 기반 파일명 복구 검증 UI (`.\venv\Scripts\python hash_verification\compare_by_fingerprint_ui.py`) |
+
 ### 보조 파일 (pytest 자동 수집 대상 아님)
 
 | 파일 | 용도 |
