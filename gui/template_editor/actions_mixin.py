@@ -18,6 +18,15 @@ from .validation import validate_value_tag_constraints
 
 
 class ActionsMixin:
+    def _next_variable_name(self, preset: Preset) -> str:
+        used = {variable.name for variable in preset.variables}
+        index = 1
+        while True:
+            candidate = f"variable_{index}"
+            if candidate not in used:
+                return candidate
+            index += 1
+
     def refresh(self) -> None:
         self._end_inline_edit(commit=False)
         preset = self.get_preset()
@@ -132,6 +141,68 @@ class ActionsMixin:
             return []
         return [int(i) for i in self.tag_listbox.curselection()]
 
+    def _invert_value_selection(self) -> None:
+        if not self.value_listbox:
+            return
+        size = int(self.value_listbox.size())
+        if size <= 0:
+            return
+        selected = set(self._selected_value_indices())
+        for idx in range(size):
+            if idx in selected:
+                self.value_listbox.selection_clear(idx)
+            else:
+                self.value_listbox.selection_set(idx)
+        self.set_status(f"값 선택 반전: {len(selected)} -> {size - len(selected)}")
+
+    @staticmethod
+    def _sync_context_selection(listbox: tk.Listbox | None, y: int) -> None:
+        if not listbox:
+            return
+        size = int(listbox.size())
+        if size <= 0:
+            return
+        index = listbox.nearest(y)
+        if index < 0 or index >= size:
+            return
+        selected = {int(i) for i in listbox.curselection()}
+        if index not in selected:
+            listbox.selection_clear(0, tk.END)
+            listbox.selection_set(index)
+        listbox.activate(index)
+
+    def _show_value_context_menu(self, event: tk.Event) -> str:
+        if not self.value_listbox or not self.value_context_menu:
+            return "break"
+        self._sync_context_selection(self.value_listbox, int(event.y))
+        self._on_value_select(event)
+        try:
+            self.value_context_menu.tk_popup(int(event.x_root), int(event.y_root))
+        finally:
+            self.value_context_menu.grab_release()
+        return "break"
+
+    def _show_variable_context_menu(self, event: tk.Event) -> str:
+        if not self.var_listbox or not self.variable_context_menu:
+            return "break"
+        self._sync_context_selection(self.var_listbox, int(event.y))
+        self._on_variable_select(event)
+        try:
+            self.variable_context_menu.tk_popup(int(event.x_root), int(event.y_root))
+        finally:
+            self.variable_context_menu.grab_release()
+        return "break"
+
+    def _show_tag_context_menu(self, event: tk.Event) -> str:
+        if not self.tag_listbox or not self.tag_context_menu:
+            return "break"
+        self._sync_context_selection(self.tag_listbox, int(event.y))
+        try:
+            self.tag_context_menu.tk_popup(int(event.x_root), int(event.y_root))
+        finally:
+            self.tag_context_menu.grab_release()
+        return "break"
+
     def _load_selected_value(self, preset: Preset, var_idx: int, value_idx: int) -> None:
         if var_idx < 0 or var_idx >= len(preset.variables):
             self._clear_value_inputs()
@@ -152,9 +223,10 @@ class ActionsMixin:
             self.on_changed()
 
     def _add_variable(self) -> None:
-        name = self.variable_name_var.get().strip()
+        preset = self.get_preset()
+        name = self._next_variable_name(preset)
         try:
-            new_preset = add_variable(self.get_preset(), name)
+            new_preset = add_variable(preset, name)
             self._apply_preset(new_preset, f"변수 추가: {name}")
         except Exception as exc:
             messagebox.showerror("템플릿", str(exc))

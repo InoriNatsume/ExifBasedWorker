@@ -46,7 +46,7 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        text = self.value_bulk_add_var.get()
+        text = self.value_name_var.get()
         if not text:
             messagebox.showwarning("템플릿", "추가할 문자열을 입력하세요.")
             return
@@ -75,7 +75,7 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        text = self.value_bulk_remove_var.get()
+        text = self.value_name_var.get()
         if not text:
             messagebox.showwarning("템플릿", "삭제할 문자열을 입력하세요.")
             return
@@ -113,8 +113,11 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        pattern_text = self.value_regex_pattern_var.get().strip()
-        replace_text = self.value_regex_replace_var.get()
+        pattern_text = self.value_search_var.get().strip()
+        if not bool(self.value_search_regex_var.get()):
+            messagebox.showwarning("템플릿", "값 검색의 '정규식' 체크를 켜세요.")
+            return
+        replace_text = self.value_name_var.get()
         pattern = self._compile_regex_or_warn(pattern_text)
         if pattern is None:
             return
@@ -149,79 +152,14 @@ class BulkOpsMixin:
             f"값 이름 정규식 치환: {changed}개 변경",
         )
 
-    def _bulk_keep_values_by_regex(self) -> None:
-        var_idx = self._selected_var_index()
-        if var_idx is None:
-            messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
-            return
-        pattern = self._compile_regex_or_warn(self.value_filter_pattern_var.get().strip())
-        if pattern is None:
-            return
-        preset = self.get_preset()
-        if var_idx >= len(preset.variables):
-            return
-        variable = preset.variables[var_idx]
-        new_values = [
-            {"name": value.name, "tags": list(value.tags)}
-            for value in variable.values
-            if pattern.search(value.name)
-        ]
-        removed = len(variable.values) - len(new_values)
-        if removed == 0:
-            self.set_status("값 행 필터(일치만 유지): 변경 없음")
-            return
-        if not new_values and not messagebox.askyesno(
-            "템플릿",
-            "일치하는 값이 없어 현재 변수의 값이 모두 삭제됩니다. 계속할까요?",
-        ):
-            return
-        self._replace_variable_values(
-            var_idx,
-            new_values,
-            f"값 행 필터(일치만 유지): {removed}개 제거",
-        )
-
-    def _bulk_delete_values_by_regex(self) -> None:
-        var_idx = self._selected_var_index()
-        if var_idx is None:
-            messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
-            return
-        pattern = self._compile_regex_or_warn(self.value_filter_pattern_var.get().strip())
-        if pattern is None:
-            return
-        preset = self.get_preset()
-        if var_idx >= len(preset.variables):
-            return
-        variable = preset.variables[var_idx]
-        new_values = [
-            {"name": value.name, "tags": list(value.tags)}
-            for value in variable.values
-            if not pattern.search(value.name)
-        ]
-        removed = len(variable.values) - len(new_values)
-        if removed == 0:
-            self.set_status("값 행 필터(일치 삭제): 변경 없음")
-            return
-        if not new_values and not messagebox.askyesno(
-            "템플릿",
-            "필터 적용 결과 현재 변수의 값이 모두 삭제됩니다. 계속할까요?",
-        ):
-            return
-        self._replace_variable_values(
-            var_idx,
-            new_values,
-            f"값 행 필터(일치 삭제): {removed}개 제거",
-        )
-
     def _copy_value_regex_to_tag_regex(self) -> None:
-        pattern_text = self.value_regex_pattern_var.get().strip()
-        replace_text = self.value_regex_replace_var.get()
+        pattern_text = self.value_search_var.get().strip()
         if not pattern_text:
             messagebox.showwarning("템플릿", "값 쪽 정규식 패턴이 비어 있습니다.")
             return
-        self.tag_regex_pattern_var.set(pattern_text)
-        self.tag_regex_replace_var.set(replace_text)
-        self.set_status("값 정규식 패턴/치환값을 태그 정규식으로 복사했습니다.")
+        self.tag_search_var.set(pattern_text)
+        self.tag_search_regex_var.set(True)
+        self.set_status("값 검색 정규식을 태그 검색 정규식으로 복사했습니다.")
 
     def _derive_tags_from_value_name(
         self,
@@ -245,10 +183,13 @@ class BulkOpsMixin:
         if var_idx is None or value_idx is None:
             messagebox.showwarning("템플릿", "값을 먼저 선택하세요.")
             return
-        pattern = self._compile_regex_or_warn(self.value_regex_pattern_var.get().strip())
+        if not bool(self.value_search_regex_var.get()):
+            messagebox.showwarning("템플릿", "값 검색의 '정규식' 체크를 켜세요.")
+            return
+        pattern = self._compile_regex_or_warn(self.value_search_var.get().strip())
         if pattern is None:
             return
-        replace_text = self.value_regex_replace_var.get()
+        replace_text = self.tag_input_var.get()
         preset = self.get_preset()
         if var_idx >= len(preset.variables):
             return
@@ -277,10 +218,13 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        pattern = self._compile_regex_or_warn(self.value_regex_pattern_var.get().strip())
+        if not bool(self.value_search_regex_var.get()):
+            messagebox.showwarning("템플릿", "값 검색의 '정규식' 체크를 켜세요.")
+            return
+        pattern = self._compile_regex_or_warn(self.value_search_var.get().strip())
         if pattern is None:
             return
-        replace_text = self.value_regex_replace_var.get()
+        replace_text = self.tag_input_var.get()
         preset = self.get_preset()
         if var_idx >= len(preset.variables):
             return
@@ -314,7 +258,7 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        tags_to_add = normalize_tags_input(self.tag_bulk_add_var.get())
+        tags_to_add = normalize_tags_input(self.tag_input_var.get())
         if not tags_to_add:
             messagebox.showwarning("템플릿", "삽입할 태그를 입력하세요.")
             return
@@ -346,7 +290,7 @@ class BulkOpsMixin:
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        tags_to_remove = set(normalize_tags_input(self.tag_bulk_remove_var.get()))
+        tags_to_remove = set(normalize_tags_input(self.tag_input_var.get()))
         if not tags_to_remove:
             messagebox.showwarning("템플릿", "삭제할 태그를 입력하세요.")
             return
@@ -381,13 +325,26 @@ class BulkOpsMixin:
             out.append(item)
         return out
 
+    def _run_tag_regex_action(self) -> None:
+        mode = self.tag_replace_mode_var.get().strip()
+        if mode == "현재 값 내에서 태그 교체":
+            self._replace_selected_tags_from_value_regex()
+            return
+        if mode == "현재 변수 전체에서 태그 교체":
+            self._replace_variable_tags_from_value_regex()
+            return
+        self._bulk_regex_replace_tags()
+
     def _bulk_regex_replace_tags(self) -> None:
         var_idx = self._selected_var_index()
         if var_idx is None:
             messagebox.showwarning("템플릿", "변수를 먼저 선택하세요.")
             return
-        pattern_text = self.tag_regex_pattern_var.get().strip()
-        replace_text = self.tag_regex_replace_var.get()
+        pattern_text = self.tag_search_var.get().strip()
+        if not bool(self.tag_search_regex_var.get()):
+            messagebox.showwarning("템플릿", "태그 검색의 '정규식' 체크를 켜세요.")
+            return
+        replace_text = self.tag_input_var.get()
         pattern = self._compile_regex_or_warn(pattern_text)
         if pattern is None:
             return

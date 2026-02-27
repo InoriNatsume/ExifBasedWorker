@@ -13,13 +13,7 @@ class ResultPanelThumbnailMixin:
     def _thumbnail_source_indices(self) -> list[int]:
         if not bool(self.show_thumbnails_var.get()):
             return []
-        if not bool(self.thumb_ok_only_var.get()):
-            return list(self.filtered_indices)
-        return [
-            rec_idx
-            for rec_idx in self.filtered_indices
-            if str(self.records[rec_idx].get("status") or "") == "OK"
-        ]
+        return list(self.filtered_indices)
 
     def _chunk_size_for_current_layout(self) -> int:
         # 화면 폭(열 수)에 따라 한 번에 불러올 썸네일 개수를 제한해 프리징을 줄인다.
@@ -64,11 +58,7 @@ class ResultPanelThumbnailMixin:
         shown_indices = self._shown_thumbnail_indices(source_indices)
         if not shown_indices:
             self._clear_thumbnail_grid()
-            if bool(self.thumb_ok_only_var.get()) and self.filtered_indices:
-                text = "표시할 OK 썸네일 없음"
-            else:
-                text = "결과 없음"
-            ttk.Label(self.thumb_inner, text=text).pack(padx=10, pady=10)
+            ttk.Label(self.thumb_inner, text="결과 없음").pack(padx=10, pady=10)
             self._update_load_more_button()
             return
 

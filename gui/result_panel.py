@@ -14,13 +14,20 @@ from .result_panel_thumbnail_mixin import ResultPanelThumbnailMixin
 
 
 class ResultPanel(ResultPanelListMixin, ResultPanelThumbnailMixin, ResultPanelLayoutMixin):
-    def __init__(self, parent: ttk.Frame, *, list_ratio: float = 0.35) -> None:
+    def __init__(
+        self,
+        parent: ttk.Frame,
+        *,
+        list_ratio: float = 0.35,
+        status_filters: tuple[str, ...] = ("OK", "UNKNOWN", "CONFLICT", "ERROR"),
+    ) -> None:
         self.parent = parent
         self.records: list[dict] = []
         self.filtered_indices: list[int] = []
         self.preview_path: str | None = None
         self.selected_record_idx: int | None = None
         self.list_ratio = max(0.25, min(list_ratio, 0.75))
+        self.status_filter_order = tuple(status_filters)
         self.pane: ttk.PanedWindow | None = None
 
         self.thumb_size = (128, 128)
@@ -58,7 +65,6 @@ class ResultPanel(ResultPanelListMixin, ResultPanelThumbnailMixin, ResultPanelLa
         self.list_fill_after_id: str | None = None
 
         self.show_thumbnails_var = tk.BooleanVar(value=True)
-        self.thumb_ok_only_var = tk.BooleanVar(value=True)
         self.auto_load_more_var = tk.BooleanVar(value=False)
 
         self.filter_vars = {
@@ -71,7 +77,7 @@ class ResultPanel(ResultPanelListMixin, ResultPanelThumbnailMixin, ResultPanelLa
 
         filter_frame = ttk.Frame(parent)
         filter_frame.pack(fill=tk.X, padx=6, pady=4)
-        for status in ("OK", "UNKNOWN", "CONFLICT", "ERROR"):
+        for status in self.status_filter_order:
             ttk.Checkbutton(
                 filter_frame,
                 text=status,
@@ -84,12 +90,6 @@ class ResultPanel(ResultPanelListMixin, ResultPanelThumbnailMixin, ResultPanelLa
             variable=self.show_thumbnails_var,
             command=self._on_thumbnail_options_changed,
         ).pack(side=tk.LEFT, padx=(14, 4))
-        ttk.Checkbutton(
-            filter_frame,
-            text="OK만",
-            variable=self.thumb_ok_only_var,
-            command=self._on_thumbnail_options_changed,
-        ).pack(side=tk.LEFT, padx=4)
         ttk.Checkbutton(
             filter_frame,
             text="자동 더보기",

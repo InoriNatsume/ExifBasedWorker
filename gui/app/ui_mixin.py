@@ -25,12 +25,9 @@ class AppUiMixin:
         ttk.Label(sidebar, text="EXIF Template Tool", font=("맑은 고딕", 14, "bold")).grid(
             row=0, column=0, sticky="w", padx=14, pady=(16, 4)
         )
-        ttk.Label(sidebar, text="Tkinter Layout (Tauri-style)").grid(
-            row=1, column=0, sticky="w", padx=14, pady=(0, 12)
-        )
 
         nav = ttk.Frame(sidebar)
-        nav.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 10))
+        nav.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
         nav.columnconfigure(0, weight=1)
 
         for idx, (tab_id, label) in enumerate(
@@ -47,7 +44,7 @@ class AppUiMixin:
             self.nav_buttons[tab_id] = btn
 
         progress = ttk.Labelframe(sidebar, text="작업 상태")
-        progress.grid(row=3, column=0, sticky="ew", padx=10, pady=(6, 10))
+        progress.grid(row=2, column=0, sticky="ew", padx=10, pady=(6, 10))
         progress.columnconfigure(0, weight=1)
         ttk.Label(progress, textvariable=self.sidebar_job_var).grid(
             row=0, column=0, sticky="w", padx=8, pady=(8, 6)
@@ -102,7 +99,7 @@ class AppUiMixin:
             row=0, column=4, padx=6, pady=6
         )
 
-        build_frame = ttk.Labelframe(wrapper, text="변수 생성 (폴더/JSON)")
+        build_frame = ttk.Labelframe(wrapper, text="변수 생성 (폴더/SDSTUDIO,NAIS2 프리셋)")
         build_frame.pack(fill=tk.X, padx=0, pady=8)
         build_frame.columnconfigure(1, weight=1)
         ttk.Label(build_frame, text="이미지 폴더").grid(row=0, column=0, sticky="w", padx=6, pady=6)
@@ -127,15 +124,11 @@ class AppUiMixin:
             row=1, column=3, padx=6, pady=6
         )
 
-        ttk.Label(build_frame, text="변수 이름").grid(row=2, column=0, sticky="w", padx=6, pady=6)
-        ttk.Entry(build_frame, textvariable=self.build_variable_var).grid(
-            row=2, column=1, sticky="we", padx=6, pady=6
-        )
         ttk.Checkbutton(
             build_frame,
             text="네거티브 태그 포함",
             variable=self.build_include_negative_var,
-        ).grid(row=2, column=2, padx=6, pady=6)
+        ).grid(row=2, column=1, sticky="w", padx=6, pady=6)
 
         ttk.Label(wrapper, textvariable=self.template_status_var).pack(
             fill=tk.X, padx=6, pady=(4, 8), anchor="w"
@@ -199,7 +192,11 @@ class AppUiMixin:
 
         result_frame = ttk.Labelframe(wrapper, text="검색 결과")
         result_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
-        self.search_result_panel = ResultPanel(result_frame, list_ratio=0.23)
+        self.search_result_panel = ResultPanel(
+            result_frame,
+            list_ratio=0.23,
+            status_filters=("OK", "ERROR"),
+        )
 
     def _build_rename_tab(self, parent: ttk.Frame) -> None:
         wrapper = ttk.Frame(parent)
@@ -272,6 +269,9 @@ class AppUiMixin:
             side=tk.LEFT, padx=(0, 8)
         )
         ttk.Button(actions, text="로그 보기", command=lambda: self._open_task_log("rename")).pack(
+            side=tk.LEFT, padx=(0, 8)
+        )
+        ttk.Button(actions, text="초기화", command=self._reset_rename_form).pack(
             side=tk.LEFT, padx=(0, 8)
         )
         ttk.Button(actions, text="취소", command=self._cancel_worker).pack(side=tk.LEFT)
@@ -352,6 +352,9 @@ class AppUiMixin:
             side=tk.LEFT, padx=(0, 8)
         )
         ttk.Button(actions, text="로그 보기", command=lambda: self._open_task_log("move")).pack(
+            side=tk.LEFT, padx=(0, 8)
+        )
+        ttk.Button(actions, text="초기화", command=self._reset_move_form).pack(
             side=tk.LEFT, padx=(0, 8)
         )
         ttk.Button(actions, text="취소", command=self._cancel_worker).pack(side=tk.LEFT)

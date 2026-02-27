@@ -54,6 +54,27 @@ class TaskActionsMixin:
 
         self._run_async("검색", work, done, self.search_status_var)
 
+    def _reset_rename_form(self) -> None:
+        self.rename_folder_var.set("")
+        self.rename_order_var.set("")
+        self.rename_dry_run_var.set(True)
+        self.rename_prefix_var.set(False)
+        self.rename_include_negative_var.set(False)
+        self.rename_status_var.set("대기")
+        if self.rename_result_panel:
+            self.rename_result_panel.clear()
+        self._refresh_task_template_choices()
+
+    def _reset_move_form(self) -> None:
+        self.move_source_var.set("")
+        self.move_order_var.set("")
+        self.move_dry_run_var.set(True)
+        self.move_include_negative_var.set(False)
+        self.move_status_var.set("대기")
+        if self.move_result_panel:
+            self.move_result_panel.clear()
+        self._refresh_task_template_choices()
+
     def _pick_rename_folder(self) -> None:
         path = filedialog.askdirectory(title="파일명 변경 폴더 선택")
         if path:

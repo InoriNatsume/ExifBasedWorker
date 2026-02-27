@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import tkinter as tk
 from tkinter import messagebox
 
@@ -51,16 +52,35 @@ class SearchMixin:
             return
 
         items = [str(self.value_listbox.get(idx)) for idx in range(size)]
+        if bool(self.value_search_regex_var.get()):
+            try:
+                pattern = re.compile(query)
+            except re.error as exc:
+                messagebox.showerror("템플릿", f"정규식 오류: {exc}")
+                return
+            matched = [idx for idx, item in enumerate(items) if pattern.search(item)]
+            self.value_listbox.selection_clear(0, tk.END)
+            for idx in matched:
+                self.value_listbox.selection_set(idx)
+            if not matched:
+                self.set_status("값 검색 선택: 매치 없음")
+                return
+            self.value_listbox.activate(matched[0])
+            self.value_listbox.see(matched[0])
+            self._on_value_select(None)
+            self.set_status(f"값 검색 선택: {len(matched)}개 매치")
+            return
+
         target_idx = find_best_value_match_index(items, query)
         if target_idx < 0:
-            self.set_status("값 검색 이동: 매치 없음")
+            self.set_status("값 검색 선택: 매치 없음")
             return
         self.value_listbox.selection_clear(0, tk.END)
         self.value_listbox.selection_set(target_idx)
         self.value_listbox.activate(target_idx)
         self.value_listbox.see(target_idx)
         self._on_value_select(None)
-        self.set_status(f"값 검색 이동: {self.value_listbox.get(target_idx)}")
+        self.set_status(f"값 검색 선택: {self.value_listbox.get(target_idx)}")
 
     def _refresh_tag_search_candidates(self, preset: Preset, var_idx: int | None) -> None:
         if not self.tag_search_combo:
@@ -90,13 +110,24 @@ class SearchMixin:
         if not self.tag_listbox:
             return
         raw = self.tag_search_var.get().strip()
-        queries = normalize_tags_input(raw)
-        if not queries:
+        if not raw:
             messagebox.showwarning("템플릿", "검색할 태그를 입력하세요.")
             return
         size = int(self.tag_listbox.size())
         tags = [str(self.tag_listbox.get(idx)) for idx in range(size)]
-        matched_indices = find_tag_match_indices(tags, queries)
+        if bool(self.tag_search_regex_var.get()):
+            try:
+                pattern = re.compile(raw)
+            except re.error as exc:
+                messagebox.showerror("템플릿", f"정규식 오류: {exc}")
+                return
+            matched_indices = [idx for idx, tag in enumerate(tags) if pattern.search(tag)]
+        else:
+            queries = normalize_tags_input(raw)
+            if not queries:
+                messagebox.showwarning("템플릿", "검색할 태그를 입력하세요.")
+                return
+            matched_indices = find_tag_match_indices(tags, queries)
 
         self.tag_listbox.selection_clear(0, tk.END)
         for idx in matched_indices:

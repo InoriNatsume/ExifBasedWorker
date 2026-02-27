@@ -42,26 +42,24 @@ class TemplateEditorPanel(
 
         self.variable_name_var = tk.StringVar(value="")
         self.value_name_var = tk.StringVar(value="")
-        self.value_bulk_add_var = tk.StringVar(value="")
-        self.value_bulk_remove_var = tk.StringVar(value="")
-        self.value_regex_pattern_var = tk.StringVar(value="")
-        self.value_regex_replace_var = tk.StringVar(value="")
-        self.value_filter_pattern_var = tk.StringVar(value="")
         self.value_search_var = tk.StringVar(value="")
-        self.tag_bulk_add_var = tk.StringVar(value="")
-        self.tag_bulk_remove_var = tk.StringVar(value="")
-        self.tag_regex_pattern_var = tk.StringVar(value="")
-        self.tag_regex_replace_var = tk.StringVar(value="")
+        self.value_search_regex_var = tk.BooleanVar(value=False)
         self.tag_search_var = tk.StringVar(value="")
+        self.tag_search_regex_var = tk.BooleanVar(value=False)
         self.tag_input_var = tk.StringVar(value="")
+        self.tag_replace_mode_var = tk.StringVar(value="태그 정규식 치환")
 
         self.var_listbox: tk.Listbox | None = None
+        self.variable_context_menu: tk.Menu | None = None
         self.value_listbox: tk.Listbox | None = None
         self.tag_listbox: tk.Listbox | None = None
-        self.value_search_combo: ttk.Combobox | None = None
+        self.value_search_combo: tk.Entry | None = None
         self.value_search_candidates: list[str] = []
-        self.tag_search_combo: ttk.Combobox | None = None
+        self.tag_search_combo: tk.Entry | None = None
         self.tag_search_candidates: list[str] = []
+        self.tag_replace_mode_combo: ttk.Combobox | None = None
+        self.value_context_menu: tk.Menu | None = None
+        self.tag_context_menu: tk.Menu | None = None
         self.value_pane: ttk.PanedWindow | None = None
         self.pane: ttk.PanedWindow | None = None
         self.var_ratio = 0.19

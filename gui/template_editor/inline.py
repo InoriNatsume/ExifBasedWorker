@@ -3,10 +3,24 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import messagebox
 
+from core.preset import Preset
+
 from .ops import normalize_tags_input, rename_variable, update_value
+from .validation import validate_value_tag_constraints
 
 
 class InlineEditMixin:
+    def _begin_new_tag_inline(self) -> None:
+        if not self.tag_listbox:
+            return
+        # 태그 목록 하단에 빈 입력 행을 만들고 즉시 인라인 입력을 시작한다.
+        insert_index = int(self.tag_listbox.size())
+        self.tag_listbox.insert(tk.END, "")
+        self.tag_listbox.selection_clear(0, tk.END)
+        self.tag_listbox.selection_set(insert_index)
+        self.tag_listbox.activate(insert_index)
+        self.tag_listbox.after_idle(lambda i=insert_index: self._start_inline_edit("tag_new", i))
+
     def _begin_variable_inline_edit(self, event: tk.Event) -> None:
         if not self.var_listbox:
             return
@@ -97,6 +111,8 @@ class InlineEditMixin:
             if index >= len(preset.variables):
                 return
             current_text = preset.variables[index].name
+        elif mode == "tag_new":
+            current_text = ""
         else:
             current_text = listbox.get(index)
 
@@ -140,7 +156,13 @@ class InlineEditMixin:
                     self._commit_inline_value_name(index, text)
                 elif mode == "tag":
                     self._commit_inline_tag(index, text)
+                elif mode == "tag_new":
+                    self._commit_inline_new_tag(text)
         finally:
+            if mode == "tag_new" and self.tag_listbox and index is not None:
+                size = int(self.tag_listbox.size())
+                if 0 <= index < size:
+                    self.tag_listbox.delete(index)
             if entry.winfo_exists():
                 entry.destroy()
             self.inline_entry = None
@@ -208,5 +230,43 @@ class InlineEditMixin:
         try:
             new_preset = update_value(preset, var_idx, value_idx, value.name, updated_tags)
             self._apply_preset(new_preset, f"태그 변경: {value.name}")
+        except Exception as exc:
+            messagebox.showerror("템플릿", str(exc))
+
+    def _commit_inline_new_tag(self, new_tag_text: str) -> None:
+        var_idx = self._selected_var_index()
+        value_indices = self._selected_value_indices()
+        if var_idx is None or not value_indices:
+            return
+        parsed = normalize_tags_input(new_tag_text)
+        if len(parsed) != 1:
+            return
+        new_tag = parsed[0]
+
+        preset = self.get_preset()
+        if var_idx >= len(preset.variables):
+            return
+
+        payload = preset.model_dump()
+        variables = payload.get("variables", [])
+        if var_idx >= len(variables):
+            return
+        values = variables[var_idx].setdefault("values", [])
+        changed = 0
+        for value_idx in sorted(set(value_indices)):
+            if value_idx < 0 or value_idx >= len(values):
+                continue
+            current_tags = [str(tag) for tag in (values[value_idx].get("tags") or [])]
+            if new_tag in current_tags:
+                continue
+            current_tags.append(new_tag)
+            values[value_idx]["tags"] = current_tags
+            changed += 1
+        if changed <= 0:
+            return
+        try:
+            validate_value_tag_constraints(values)
+            new_preset = Preset.model_validate(payload)
+            self._apply_preset(new_preset, f"태그 추가: {changed}개 값 변경")
         except Exception as exc:
             messagebox.showerror("템플릿", str(exc))
