@@ -49,6 +49,8 @@ flowchart LR
 | **JSON으로 생성** (SDStudio) | SDStudio 씬 JSON | 씬 이름 → 값 이름, 프롬프트 → 태그 |
 | **JSON으로 생성** (NAIS) | NAIS/NAIS2 씬 JSON | 씬/슬롯 → 값 이름, 프롬프트 → 태그 |
 
+**유효성 검증** 버튼으로 이름 중복·태그 누락·태그 충돌 등을 사전에 검사할 수 있습니다. 자세한 규칙은 [템플릿 검증 규칙](#템플릿-검증-규칙)을 참고하세요.
+
 
 ### ② 파일명 변경 / 분류 탭에서 템플릿 선택
 
@@ -57,8 +59,15 @@ flowchart LR
 
 ### ③ 드라이런으로 확인
 
-**드라이런**을 누르면 실제 파일을 변경하지 않고 결과만 미리 볼 수 있습니다.
-상태 필터(OK / UNKNOWN / CONFLICT / ERROR)로 필요한 결과만 골라서 확인하세요.
+**드라이런**을 켜고 실행하면 파일을 실제로 건드리지 않고 "이렇게 될 예정" 결과만 보여줍니다.
+각 이미지마다 아래 상태 중 하나가 표시되며, 상태별로 필터링해서 볼 수 있습니다.
+
+| 상태 | 의미 |
+|------|------|
+| **OK** | 매칭 성공, 정상 처리 대상 |
+| **UNKNOWN** | 어떤 값과도 매칭되지 않음 (건너뜀) |
+| **CONFLICT** | 여러 값에 동시에 매칭됨 (건너뜀) |
+| **ERROR** | 파일 읽기 실패 등 예외 발생 |
 
 ### ④ 실행
 
@@ -160,10 +169,8 @@ flowchart TB
 
 ## 템플릿 검증 규칙
 
-템플릿을 **저장하거나 JSON을 임포트할 때** 자동으로 유효성을 검사합니다.
-규칙에 어긋나면 한국어 에러 메시지와 함께 저장이 중단되므로, 잘못된 템플릿으로 작업이 실행되는 일은 없습니다.
-
-### 검증 규칙 요약
+템플릿에 문제가 있으면 작업 실행 시 매칭이 엉키거나, 결과를 예측할 수 없습니다.
+**유효성 검증** 버튼을 누르면 아래 규칙을 검사하며, 작업(파일명 변경·분류) 실행 시에도 자동으로 검증됩니다. 위반 시 한국어 에러 메시지가 표시됩니다.
 
 | 대상 | 규칙 | 기호 표현 |
 |------|------|----------|
@@ -175,23 +182,7 @@ flowchart TB
 
 > `값1`, `값2` = 같은 변수 안의 서로 다른 임의의 값
 
-### 에러 메시지 예시
-
-규칙을 위반하면 다음과 같은 메시지가 표시됩니다.
-
-```
-❌ 1번째 변수 이름이 비어 있습니다.
-❌ 변수 이름 중복: 'emotion'
-❌ 변수 'emotion'의 2번째 값 이름이 비어 있습니다.
-❌ 변수 'emotion'에서 값 이름이 중복됩니다: 'happy'
-❌ 태그가 비어 있는 값이 있습니다: emotion/happy, chara/adelheid_kanzaki
-❌ 태그 조합이 중복됩니다: 'happy' 와 'joyful'
-❌ 태그 부분집합 충돌: 'happy' ⊂ 'very_happy'
-```
-
-### 부분집합 금지 규칙이 필요한 이유
-
-`happy`의 태그가 `{smile, open mouth}`이고 `very_happy`의 태그가 `{smile, open mouth, blush}`라면, `smile, open mouth, blush`가 있는 이미지는 **두 값에 동시에 매칭**되어 CONFLICT가 발생합니다. 이런 상황을 템플릿 단계에서 미리 막아 줍니다.
+**부분집합 금지가 필요한 이유:** `happy_1`의 태그가 `{smile, open mouth}`이고 `happy_2`의 태그가 `{smile, open mouth, blush}`라면, `smile, open mouth, blush`가 있는 이미지는 두 값에 동시에 매칭되어 CONFLICT가 됩니다. 이런 상황을 템플릿 단계에서 미리 막아 줍니다.
 
 ## 테스트
 
@@ -229,18 +220,6 @@ flowchart TB
 | `__init__.py` | `tests` 패키지 마커 |
 
 </details>
-
-## 배포 (Windows exe 만들기)
-
-PyInstaller로 단독 실행 파일을 만들 수 있습니다.
-
-```powershell
-.\venv\Scripts\Activate.ps1
-pip install pyinstaller
-pyinstaller --noconfirm --windowed --name ExifTemplateTool main.py
-```
-
-결과물: `dist/ExifTemplateTool/ExifTemplateTool.exe`
 
 ---
 
