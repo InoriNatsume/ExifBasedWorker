@@ -78,68 +78,34 @@ flowchart LR
 이 도구의 모든 작업은 **템플릿**을 기준으로 동작합니다.
 템플릿은 "이 태그 조합이 있으면 이 이름을 쓴다"는 규칙의 모음입니다.
 
-```mermaid
-flowchart TB
-    P["🗂️ 템플릿: hbr"]
-    V1["📋 변수: chara"]
-    V2["📋 변수: emotion"]
-    VV1["📌 값: adelheid_kanzaki"]
-    VV2["📌 값: inori_natsume"]
-    VV3["📌 값: happy"]
-    VV4["📌 값: angry"]
-    T1["🏷️ kanzaki adelheid"]
-    T2["🏷️ natsume inori"]
-    T3["🏷️ happy, open mouth, smile, ..."]
-    T4["🏷️ angry, anger vein, ..."]
+### 구조
 
-    P --> V1 & V2
-    V1 --> VV1 & VV2
-    V2 --> VV3 & VV4
-    VV1 --> T1
-    VV2 --> T2
-    VV3 --> T3
-    VV4 --> T4
+```
+템플릿
+├── 변수: chara
+│   ├── 값: adelheid_kanzaki  →  태그: [kanzaki_adelheid]
+│   └── 값: inori_natsume     →  태그: [natsume_inori]
+└── 변수: emotion
+    ├── 값: happy     →  태그: [happy, open mouth, smile, ...]
+    └── 값: angry     →  태그: [angry, anger vein, ...]
 ```
 
-아래는 `templates/hbr.json`에서 발췌한 실제 예시입니다.
+이미지의 메타데이터에서 추출한 태그가 값의 태그에 **전부 포함**되면 매칭됩니다.
 
-```json
-{
-  "name": "default",
-  "variables": [
-    {
-      "name": "emotion",
-      "values": [
-        {
-          "name": "angry",
-          "tags": ["angry", "anger vein", "wavy mouth", "open mouth",
-                   "hands on own hips", "leaning forward"]
-        },
-        {
-          "name": "happy",
-          "tags": ["happy", "open mouth", "smile",
-                   "closed eyes", "hand on own stomach", "happy aura"]
-        }
-      ]
-    },
-    {
-      "name": "chara",
-      "values": [
-        { "name": "adelheid_kanzaki", "tags": ["kanzaki adelheid"] },
-        { "name": "inori_natsume",    "tags": ["natsume inori"] }
-      ]
-    }
-  ]
-}
-```
+### 파일명 변경 규칙
 
-**매칭 원리:** 이미지의 태그 목록에 값의 태그가 **전부 포함**되어 있으면 매칭됩니다.
+변수 순서를 지정하면, 매칭된 값 이름을 순서대로 조합해서 파일명을 만듭니다.
 
-예를 들어, 변수 순서 `chara,emotion`으로 파일명 변경을 실행하면:
-- 이미지 태그에 `kanzaki adelheid, happy, open mouth, smile, ...`이 포함 → **🖼️ `adelheid_kanzaki_happy.webp`**
-- 이미지 태그에 `natsume inori, angry, anger vein, wavy mouth, ...`이 포함 → **🖼️ `inori_natsume_angry.webp`**
-- 태그가 어떤 값과도 매칭되지 않으면 → **UNKNOWN** (건너뜀)
-- 태그가 여러 값에 동시에 매칭되면 → **CONFLICT** (건너뜀)
+**일반 패턴:** 변수 순서 `변수1,변수2`일 때 → `[변수1의 값]_[변수2의 값].확장자`
+
+**예시:** 변수 순서 `chara,emotion`일 때:
+
+| 이미지에 포함된 태그 | 매칭 결과 | 파일명 |
+|---------------------|----------|--------|
+| kanzaki adelheid, happy, open mouth, smile, ... | chara=adelheid_kanzaki, emotion=happy | `adelheid_kanzaki_happy.webp` |
+| natsume inori, angry, anger vein, ... | chara=inori_natsume, emotion=angry | `inori_natsume_angry.webp` |
+| (어떤 값과도 매칭 안 됨) | — | UNKNOWN (건너뜀) |
+| (여러 값에 동시 매칭) | — | CONFLICT (건너뜀) |
 
 `chara` 기준 분류 결과는 아래처럼 폴더 구조로 생성됩니다.
 
