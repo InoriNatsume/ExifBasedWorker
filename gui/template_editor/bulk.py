@@ -10,6 +10,12 @@ from .ops import normalize_tags_input, update_value
 from .validation import validate_value_tag_constraints
 
 
+def apply_value_name_add_mode(value_name: str, text: str, mode: str) -> str:
+    if mode == "앞에 추가":
+        return f"{text}{value_name}"
+    return f"{value_name}{text}"
+
+
 class BulkOpsMixin:
     def _replace_variable_values(
         self,
@@ -50,6 +56,8 @@ class BulkOpsMixin:
         if not text:
             messagebox.showwarning("템플릿", "추가할 문자열을 입력하세요.")
             return
+        mode_var = getattr(self, "value_add_mode_var", None)
+        mode = mode_var.get().strip() if mode_var else "뒤에 추가"
         preset = self.get_preset()
         if var_idx >= len(preset.variables):
             return
@@ -57,17 +65,17 @@ class BulkOpsMixin:
         new_values: list[dict[str, object]] = []
         changed = 0
         for value in variable.values:
-            new_name = f"{value.name}{text}"
+            new_name = apply_value_name_add_mode(value.name, text, mode)
             if new_name != value.name:
                 changed += 1
             new_values.append({"name": new_name, "tags": list(value.tags)})
         if changed == 0:
-            self.set_status("값 이름 일괄 추가: 변경 없음")
+            self.set_status(f"값 이름 일괄 추가({mode}): 변경 없음")
             return
         self._replace_variable_values(
             var_idx,
             new_values,
-            f"값 이름 일괄 추가: {changed}개 변경",
+            f"값 이름 일괄 추가({mode}): {changed}개 변경",
         )
 
     def _bulk_remove_value_text(self) -> None:

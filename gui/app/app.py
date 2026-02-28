@@ -100,6 +100,8 @@ class ExifTkApp(
         self.move_log_tree: ttk.Treeview | None = None
         self.rename_template_combo: ttk.Combobox | None = None
         self.move_template_combo: ttk.Combobox | None = None
+        self.template_load_menu_button: ttk.Menubutton | None = None
+        self.template_load_menu: tk.Menu | None = None
         self.task_template_paths: dict[str, str] = {}
         self.log_notebook: ttk.Notebook | None = None
         self.rename_log_tab_frame: ttk.Frame | None = None

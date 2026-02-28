@@ -174,7 +174,10 @@ flowchart TB
 | `test_normalize.py` | 태그 분리/병합/정규화 로직 검증 |
 | `test_scene_preset_import.py` | Scene preset 포맷 import(legacy/SDStudio/NAIS) 검증 |
 | `test_schema.py` | Pydantic 스키마 제약(중복/부분집합 등) 검증 |
+| `test_template_bulk_add_mode.py` | 값 이름 일괄 문자열 추가 모드(앞/뒤) 처리 검증 |
 | `test_tag_sets.py` | 공통 태그 제거/충돌 탐지 유틸 검증 |
+| `test_template_generation_apply.py` | 변수 생성 적용 시 동일 변수명 충돌 처리(사유 알림 후 미적용) 검증 |
+| `test_template_load_modes.py` | 템플릿 불러오기 모드(초기화/변수 추가) 및 충돌 시 미적용 검증 |
 | `test_template_ops.py` | 템플릿 에디터 연산(add/update/delete) 검증 |
 
 ### 수동 검증 도구
@@ -182,6 +185,7 @@ flowchart TB
 | 파일 | 용도 |
 |------|------|
 | `hash_verification/compare_by_fingerprint_ui.py` | 해시 기반 파일명 복구 검증 UI (`.\venv\Scripts\python hash_verification\compare_by_fingerprint_ui.py`) |
+| `filename_tag_tool/filename_value_extractor_gui.py` | 파일명 정규식 추출/상태 필터/이미지 뷰어/값 기반 태그 생성(일괄 정규식 치환·개별 수정) GUI (`.\venv\Scripts\python filename_tag_tool\filename_value_extractor_gui.py`) |
 
 ### 보조 파일 (pytest 자동 수집 대상 아님)
 

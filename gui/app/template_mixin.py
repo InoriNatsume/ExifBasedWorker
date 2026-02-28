@@ -31,11 +31,18 @@ class TemplateWorkflowMixin:
     def _set_preset(self, preset: Preset) -> None:
         self.state.preset = preset
 
-    def _load_template(self) -> None:
-        path = filedialog.askopenfilename(
-            title="템플릿 불러오기",
+    def _ask_template_load_path(self, *, title: str = "템플릿 불러오기") -> str:
+        return filedialog.askopenfilename(
+            title=title,
             filetypes=[("JSON", "*.json"), ("All files", "*.*")],
         )
+
+    def _load_template(self) -> None:
+        # 기존 버튼/단축 경로 하위 호환: 기본은 초기화 불러오기
+        self._load_template_reset()
+
+    def _load_template_reset(self) -> None:
+        path = self._ask_template_load_path(title="템플릿 불러오기")
         if not path:
             return
         try:
@@ -46,6 +53,53 @@ class TemplateWorkflowMixin:
             logging.info("템플릿 불러오기: %s", path)
         except Exception as exc:
             messagebox.showerror("템플릿", f"불러오기 실패: {exc}")
+
+    def _load_template_add_variables(self) -> None:
+        if self.template_editor:
+            self.template_editor.flush_pending_edits()
+
+        path = self._ask_template_load_path(title="변수 추가 불러오기")
+        if not path:
+            return
+
+        try:
+            incoming_preset = load_preset(path)
+        except Exception as exc:
+            messagebox.showerror("템플릿", f"불러오기 실패: {exc}")
+            return
+
+        incoming_variables = list(incoming_preset.variables)
+        if not incoming_variables:
+            reason = f"변수 추가 중단: 추가할 변수가 없습니다. ({Path(path).name})"
+            self.template_status_var.set(reason)
+            messagebox.showwarning("템플릿", reason)
+            logging.warning("변수 추가 불러오기 중단: %s", reason)
+            return
+
+        current_names = {variable.name for variable in self.state.preset.variables}
+        duplicated_names = sorted({variable.name for variable in incoming_variables if variable.name in current_names})
+        if duplicated_names:
+            reason = (
+                "변수 충돌: 동일한 변수 이름이 이미 있습니다. "
+                f"(변수명: {', '.join(duplicated_names)})"
+            )
+            self.template_status_var.set(reason)
+            messagebox.showwarning("템플릿", reason)
+            logging.warning("변수 추가 불러오기 충돌: %s", reason)
+            return
+
+        merged_variables = [*self.state.preset.variables, *incoming_variables]
+        preset_name = self.state.preset.name or self.state.get_template_name()
+        self.state.preset = Preset(name=preset_name, variables=merged_variables)
+        self._refresh_template_ui()
+        self.template_status_var.set(
+            f"변수 추가 불러오기 완료: {Path(path).name} ({len(incoming_variables)}개 변수 추가)"
+        )
+        logging.info(
+            "변수 추가 불러오기 완료: source=%s added=%d",
+            path,
+            len(incoming_variables),
+        )
 
     def _save_template(self) -> None:
         if self.template_editor:
@@ -116,7 +170,22 @@ class TemplateWorkflowMixin:
             self.build_preset_json_var.set(path)
 
     def _apply_generated_variable(self, variable, stats: dict, *, status_prefix: str) -> None:
-        variables = [v for v in self.state.preset.variables if v.name != variable.name]
+        existing = next(
+            (item for item in self.state.preset.variables if item.name == variable.name),
+            None,
+        )
+        if existing is not None:
+            reason = (
+                f"변수 충돌: 동일한 변수 이름이 이미 있습니다. "
+                f"(변수명: {variable.name}, 기존 값 {len(existing.values)}개, "
+                f"신규 값 {len(variable.values)}개)"
+            )
+            self.template_status_var.set(reason)
+            messagebox.showwarning("변수 생성", reason)
+            logging.warning("변수 생성 충돌: %s", reason)
+            return
+
+        variables = list(self.state.preset.variables)
         variables.append(variable)
         preset_name = self.state.preset.name or self.state.get_template_name()
         self.state.preset = Preset(name=preset_name, variables=variables)

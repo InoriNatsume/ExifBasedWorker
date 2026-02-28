@@ -70,6 +70,14 @@ class LayoutMixin:
         ttk.Entry(value_edit, textvariable=self.value_name_var).pack(fill=tk.X, pady=(0, 6))
         value_buttons = ttk.Frame(value_edit)
         value_buttons.pack(fill=tk.X)
+        self.value_add_mode_combo = ttk.Combobox(
+            value_buttons,
+            textvariable=self.value_add_mode_var,
+            state="readonly",
+            values=("뒤에 추가", "앞에 추가"),
+            width=10,
+        )
+        self.value_add_mode_combo.pack(side=tk.LEFT, padx=(0, 4))
         ttk.Button(value_buttons, text="문자열 추가", command=self._bulk_add_value_text).pack(
             side=tk.LEFT, padx=(0, 4)
         )

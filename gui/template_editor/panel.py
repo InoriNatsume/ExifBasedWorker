@@ -42,6 +42,7 @@ class TemplateEditorPanel(
 
         self.variable_name_var = tk.StringVar(value="")
         self.value_name_var = tk.StringVar(value="")
+        self.value_add_mode_var = tk.StringVar(value="뒤에 추가")
         self.value_search_var = tk.StringVar(value="")
         self.value_search_regex_var = tk.BooleanVar(value=False)
         self.tag_search_var = tk.StringVar(value="")
@@ -54,6 +55,7 @@ class TemplateEditorPanel(
         self.value_listbox: tk.Listbox | None = None
         self.tag_listbox: tk.Listbox | None = None
         self.value_search_combo: tk.Entry | None = None
+        self.value_add_mode_combo: ttk.Combobox | None = None
         self.value_search_candidates: list[str] = []
         self.tag_search_combo: tk.Entry | None = None
         self.tag_search_candidates: list[str] = []

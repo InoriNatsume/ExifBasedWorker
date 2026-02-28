@@ -89,9 +89,14 @@ class AppUiMixin:
         ttk.Entry(top, textvariable=self.template_path_var, state="readonly").grid(
             row=0, column=1, sticky="we", padx=6, pady=6
         )
-        ttk.Button(top, text="불러오기", command=self._load_template).grid(
-            row=0, column=2, padx=6, pady=6
-        )
+        load_button = ttk.Menubutton(top, text="불러오기")
+        load_menu = tk.Menu(load_button, tearoff=0)
+        load_menu.add_command(label="초기화 불러오기", command=self._load_template_reset)
+        load_menu.add_command(label="변수 추가 불러오기", command=self._load_template_add_variables)
+        load_button.configure(menu=load_menu)
+        load_button.grid(row=0, column=2, padx=6, pady=6)
+        self.template_load_menu_button = load_button
+        self.template_load_menu = load_menu
         ttk.Button(top, text="저장", command=self._save_template).grid(
             row=0, column=3, padx=6, pady=6
         )
