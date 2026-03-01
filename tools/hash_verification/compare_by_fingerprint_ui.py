@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
 
 try:
-    from hash_verification.fingerprint_compare_core import (
+    from tools.hash_verification.fingerprint_compare_core import (
         ALL_STATUSES,
         STATUS_FINGERPRINT_NOT_FOUND,
         STATUS_MATCH,
@@ -24,7 +24,7 @@ try:
         FileEntry,
     )
 except ModuleNotFoundError:
-    # 파일 직접 실행(`python hash_verification\\compare_by_fingerprint_ui.py`) 경로 호환
+    # 파일 직접 실행(`python tools\\hash_verification\\compare_by_fingerprint_ui.py`) 경로 호환
     from fingerprint_compare_core import (  # type: ignore
         ALL_STATUSES,
         STATUS_FINGERPRINT_NOT_FOUND,

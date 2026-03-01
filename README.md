@@ -156,7 +156,7 @@ flowchart TB
 .\venv\Scripts\python -m pytest tests -v --tb=short
 ```
 
-> 자동 테스트 대상은 `tests/test_*.py` 파일입니다.
+> 자동 테스트 대상은 `tests/**/test_*.py` 파일입니다.
 
 <details>
 <summary><b>🧪 테스트 구성 (접기/펼치기)</b></summary>
@@ -165,33 +165,33 @@ flowchart TB
 
 | 파일 | 용도 |
 |------|------|
-| `test_build_from_folder.py` | 폴더 기반 변수 생성 서비스 검증 |
-| `test_build_from_preset_json.py` | NAIS/SDStudio JSON 기반 변수 생성 검증 |
-| `test_extract.py` | 메타/코멘트 payload 추출 로직 검증 |
-| `test_gui_services.py` | 검색/파일명 변경/분류 서비스 동작(드라이런 포함) 검증 |
-| `test_ipc_emitter.py` | GUI 로그 핸들러(`QueueLogHandler`) 동작 검증 |
-| `test_match.py` | 태그 매칭/충돌 상태 판정 검증 |
-| `test_normalize.py` | 태그 분리/병합/정규화 로직 검증 |
-| `test_scene_preset_import.py` | Scene preset 포맷 import(legacy/SDStudio/NAIS) 검증 |
-| `test_schema.py` | Pydantic 스키마 제약(중복/부분집합 등) 검증 |
-| `test_template_bulk_add_mode.py` | 값 이름 일괄 문자열 추가 모드(앞/뒤) 처리 검증 |
-| `test_tag_sets.py` | 공통 태그 제거/충돌 탐지 유틸 검증 |
-| `test_template_generation_apply.py` | 변수 생성 적용 시 동일 변수명 충돌 처리(사유 알림 후 미적용) 검증 |
-| `test_template_load_modes.py` | 템플릿 불러오기 모드(초기화/변수 추가) 및 충돌 시 미적용 검증 |
-| `test_template_ops.py` | 템플릿 에디터 연산(add/update/delete) 검증 |
+| `tests/core/test_extract.py` | 메타/코멘트 payload 추출 로직 검증 |
+| `tests/core/test_match.py` | 태그 매칭/충돌 상태 판정 검증 |
+| `tests/core/test_normalize.py` | 태그 분리/병합/정규화 로직 검증 |
+| `tests/core/test_schema.py` | Pydantic 스키마 제약(중복/부분집합 등) 검증 |
+| `tests/core/test_tag_sets.py` | 공통 태그 제거/충돌 탐지 유틸 검증 |
+| `tests/gui/test_gui_services.py` | 검색/파일명 변경/분류 서비스 동작(드라이런 포함) 검증 |
+| `tests/gui/test_ipc_emitter.py` | GUI 로그 핸들러(`QueueLogHandler`) 동작 검증 |
+| `tests/preset/test_build_from_folder.py` | 폴더 기반 변수 생성 서비스 검증 |
+| `tests/preset/test_build_from_preset_json.py` | NAIS/SDStudio JSON 기반 변수 생성 검증 |
+| `tests/preset/test_scene_preset_import.py` | Scene preset 포맷 import(legacy/SDStudio/NAIS) 검증 |
+| `tests/templates/test_template_bulk_add_mode.py` | 값 이름 일괄 문자열 추가 모드(앞/뒤) 처리 검증 |
+| `tests/templates/test_template_generation_apply.py` | 변수 생성 적용 시 동일 변수명 충돌 처리(사유 알림 후 미적용) 검증 |
+| `tests/templates/test_template_load_modes.py` | 템플릿 불러오기 모드(초기화/변수 추가) 및 충돌 시 미적용 검증 |
+| `tests/templates/test_template_ops.py` | 템플릿 에디터 연산(add/update/delete) 검증 |
 
 ### 수동 검증 도구
 
 | 파일 | 용도 |
 |------|------|
-| `hash_verification/compare_by_fingerprint_ui.py` | 해시 기반 파일명 복구 검증 UI (`.\venv\Scripts\python hash_verification\compare_by_fingerprint_ui.py`) |
-| `filename_tag_tool/filename_value_extractor_gui.py` | 파일명 정규식 추출/상태 필터/이미지 뷰어/값 기반 태그 생성(일괄 정규식 치환·개별 수정) GUI (`.\venv\Scripts\python filename_tag_tool\filename_value_extractor_gui.py`) |
+| `tools/hash_verification/compare_by_fingerprint_ui.py` | 해시 기반 파일명 복구 검증 UI (`.\venv\Scripts\python tools\hash_verification\compare_by_fingerprint_ui.py`) |
+| `tools/filename_tag_tool/filename_value_extractor_gui.py` | 파일명 정규식 추출/상태 필터/이미지 뷰어/값 기반 태그 생성(일괄 정규식 치환·개별 수정) GUI (`.\venv\Scripts\python tools\filename_tag_tool\filename_value_extractor_gui.py`) |
 
 ### 보조 파일 (pytest 자동 수집 대상 아님)
 
 | 파일 | 용도 |
 |------|------|
-| `_bootstrap.py` | 테스트 실행 시 프로젝트 루트 경로 설정 |
+| `pytest.ini` | pytest 기본 수집 경로(`tests`) 및 루트 pythonpath 설정 |
 | `conftest.py` | pytest 공통 설정/fixture |
 | `__init__.py` | `tests` 패키지 마커 |
 
@@ -220,11 +220,17 @@ ExifBased_namer/
 │   ├── state.py               # 앱 상태
 │   ├── services.py            # 코어 호출 파사드
 │   └── services_ops/          # 작업별 서비스 구현
-├── nais_builder/              # 호환용 래퍼 (→ core/adapters/)
+├── tools/                     # 수동 검증/보조 도구
+│   ├── filename_tag_tool/     # 파일명 추출/태그 생성 GUI 도구
+│   └── hash_verification/     # 해시 기반 비교 검증 도구
 ├── templates/                 # 작업용 템플릿 JSON
 ├── tests/                     # 자동 테스트
+│   ├── core/
+│   ├── gui/
+│   ├── preset/
+│   └── templates/
 ├── logs/                      # 런타임 로그
-└── legacy/                    # 이전 프로젝트 보관 (참고 전용)
+└── pytest.ini                 # pytest 설정
 ```
 
 > GUI의 폴더 기반 변수 생성 호출 경로는 `gui/services_ops/build_ops.py`이며,

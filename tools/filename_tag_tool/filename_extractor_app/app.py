@@ -18,6 +18,8 @@ from .tag_mapping_service import (
 )
 from .template_service import build_preset, save_preset
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 def _widget_is_descendant(widget: tk.Widget | None, ancestor: tk.Widget | None) -> bool:
     if widget is None or ancestor is None:
@@ -878,7 +880,7 @@ class FilenameValueExtractorApp:
         template_name = self.tag_template_name_var.get().strip() or "template"
         preset = build_preset(template_name, variable)
 
-        templates_dir = Path("templates")
+        templates_dir = PROJECT_ROOT / "templates"
         templates_dir.mkdir(parents=True, exist_ok=True)
         initial_name = f"{template_name}.json"
         path = filedialog.asksaveasfilename(
